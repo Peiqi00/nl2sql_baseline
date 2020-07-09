@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 from modules.word_embedding import WordEmbedding
-from modules.aggregator_predict import AggPredictor
+from modules.aggregator_predict import AggPredictor  # 聚集
 from modules.selection_predict import SelPredictor
 from modules.sqlnet_condition_predict import SQLNetCondPredictor
 from modules.select_number import SelNumPredictor
@@ -27,19 +27,19 @@ class SQLNet(nn.Module):
         self.SQL_TOK = ['<UNK>', '<END>', 'WHERE', 'AND', 'OR', '==', '>', '<', '!=', '<BEG>']
         self.COND_OPS = ['>', '<', '==', '!=']
 
-        # Word embedding
+        # Word embedding 词嵌入
         self.embed_layer = WordEmbedding(word_emb, N_word, gpu, self.SQL_TOK, our_model=True, trainable=trainable_emb)
 
-        # Predict the number of selected columns
+        # Predict the number of selected columns 预测所选列的数量
         self.sel_num = SelNumPredictor(N_word, N_h, N_depth, use_ca=use_ca)
 
-        #Predict which columns are selected
+        #Predict which columns are selected 预测选择了哪些列
         self.sel_pred = SelPredictor(N_word, N_h, N_depth, self.max_tok_num, use_ca=use_ca)
 
-        #Predict aggregation functions of corresponding selected columns
+        #Predict aggregation functions of corresponding selected columns 预测所选列对应的聚合函数
         self.agg_pred = AggPredictor(N_word, N_h, N_depth, use_ca=use_ca)
 
-        #Predict number of conditions, condition columns, condition operations and condition values
+        #Predict number of conditions, condition columns, condition operations and condition values 预测条件、条件列、条件操作和条件值的数量
         self.cond_pred = SQLNetCondPredictor(N_word, N_h, N_depth, self.max_col_num, self.max_tok_num, use_ca, gpu)
 
         # Predict condition relationship, like 'and', 'or'
@@ -84,7 +84,7 @@ class SQLNet(nn.Module):
         agg_score = None
         sel_score = None
         cond_score = None
-        #Predict aggregator
+        #Predict aggregator 预测聚合器
         if self.trainable_emb:
             x_emb_var, x_len = self.agg_embed_layer.gen_x_batch(q, col)
             col_inp_var, col_name_len, col_len = self.agg_embed_layer.gen_col_batch(col)
@@ -107,12 +107,12 @@ class SQLNet(nn.Module):
             x_emb_var, x_len = self.embed_layer.gen_x_batch(q, col)
             col_inp_var, col_name_len, col_len = self.embed_layer.gen_col_batch(col)
             sel_num_score = self.sel_num(x_emb_var, x_len, col_inp_var, col_name_len, col_len, col_num)
-            # x_emb_var: embedding of each question
+            # x_emb_var: embedding of each question 嵌入每个问题
             # x_len: length of each question
-            # col_inp_var: embedding of each header
+            # col_inp_var: embedding of each header 嵌入每个列明
             # col_name_len: length of each header
-            # col_len: number of headers in each table, array type
-            # col_num: number of headers in each table, list type
+            # col_len: number of headers in each table, array type 数组类型
+            # col_num: number of headers in each table, list type 列表类型
             if gt_sel_num:
                 pr_sel_num = gt_sel_num
             else:
@@ -139,7 +139,7 @@ class SQLNet(nn.Module):
         B = len(truth_num)
         loss = 0
 
-        # Evaluate select number
+        # Evaluate select number 评估
         sel_num_truth = map(lambda x:x[0], truth_num)
         sel_num_truth = torch.from_numpy(np.array(sel_num_truth))
         if self.gpu:
@@ -211,7 +211,7 @@ class SQLNet(nn.Module):
             (1-cond_col_truth_var) * torch.log(1-cond_col_prob+1e-10) )
         loss += bce_loss
 
-        # Evaluate the operator of conditions
+        # Evaluate the operator of conditions 评估条件运算符
         for b in range(len(truth_num)):
             if len(truth_num[b][5]) == 0:
                 continue
@@ -390,7 +390,7 @@ class SQLNet(nn.Module):
             cur_query['agg'] = []
             sel_num = np.argmax(sel_num_score[b])
             max_col_idxes = np.argsort(-sel_score[b])[:sel_num]
-            # find the most-probable columns' indexes
+            # find the most-probable columns' indexes 查找最可能的列的索引
             max_agg_idxes = np.argsort(-agg_score[b])[:sel_num]
             cur_query['sel'].extend([int(i) for i in max_col_idxes])
             cur_query['agg'].extend([i[0] for i in max_agg_idxes])
