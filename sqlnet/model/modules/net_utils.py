@@ -4,8 +4,8 @@ import numpy as np
 from torch.autograd import Variable
 
 def run_lstm(lstm, inp, inp_len, hidden=None):
-    # Run the LSTM using packed sequence.
-    # This requires to first sort the input according to its length.
+    # Run the LSTM using packed sequence. 使用压缩序列运行LSTM
+    # This requires to first sort the input according to its length. 这需要首先根据长度对输入进行排序
     sort_perm = np.array(sorted(range(len(inp_len)),
         key=lambda k:inp_len[k], reverse=True))
     sort_inp_len = inp_len[sort_perm]
@@ -29,8 +29,8 @@ def run_lstm(lstm, inp, inp_len, hidden=None):
 
 
 def col_name_encode(name_inp_var, name_len, col_len, enc_lstm):
-    #Encode the columns.
-    #The embedding of a column name is the last state of its LSTM output.
+    #Encode the columns. 列的编码
+    #The embedding of a column name is the last state of its LSTM output. 列名的嵌入是其LSTM输出的最后状态
     name_hidden, _ = run_lstm(enc_lstm, name_inp_var, name_len)
     name_out = name_hidden[tuple(range(len(name_len))), name_len-1]
     ret = torch.FloatTensor(
