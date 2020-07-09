@@ -9,11 +9,13 @@ def run_lstm(lstm, inp, inp_len, hidden=None):
     sort_perm = np.array(sorted(range(len(inp_len)),
         key=lambda k:inp_len[k], reverse=True))
     sort_inp_len = inp_len[sort_perm]
-    sort_perm_inv = np.argsort(sort_perm)
+    sort_perm_inv = np.argsort(sort_perm) # argsort函数返回的是数组值从小到大的索引值
     if inp.is_cuda:
         sort_perm = torch.LongTensor(sort_perm).cuda()
         sort_perm_inv = torch.LongTensor(sort_perm_inv).cuda()
-
+    
+    # 这里的pack，理解成压紧比较好。 将一个 填充过的变长序列 压紧。（填充时候，会有冗余，所以压紧一下）
+    # 其中pack的过程为：（注意pack的形式，不是按行压，而是按列压）
     lstm_inp = nn.utils.rnn.pack_padded_sequence(inp[sort_perm],
             sort_inp_len, batch_first=True)
     if hidden is None:
