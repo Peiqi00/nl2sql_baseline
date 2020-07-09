@@ -30,8 +30,8 @@ class Seq2SQLCondPredictor(nn.Module):
 
 
     def gen_gt_batch(self, tok_seq, gen_inp=True):
-        # If gen_inp: generate the input token sequence (removing <END>)
-        # Otherwise: generate the output token sequence (removing <BEG>)
+        # If gen_inp: generate the input token sequence (removing <END>) 生成输入标记序列
+        # Otherwise: generate the output token sequence (removing <BEG>) 生成输出标记序列
         B = len(tok_seq)
         ret_len = np.array([len(one_tok_seq)-1 for one_tok_seq in tok_seq])
         max_len = max(ret_len)
