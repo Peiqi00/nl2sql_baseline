@@ -23,14 +23,14 @@ class WhereRelationPredictor(nn.Module):
         self.col2hid2 = nn.Linear(N_h, 2 * N_h)
 
         if self.use_ca:
-            print "Using column attention on where relation predicting"
+            print "Using column attention on where relation predicting" # 使用列注意力机制在where关系预测
 
     def forward(self, x_emb_var, x_len, col_inp_var, col_name_len, col_len, col_num):
         B = len(x_len)
         max_x_len = max(x_len)
 
-        # Predict the condition relationship part
-        # First use column embeddings to calculate the initial hidden unit
+        # Predict the condition relationship part 预测条件关系部分
+        # First use column embeddings to calculate the initial hidden unit 首先使用列嵌入来计算初始隐藏单位
         # Then run the LSTM and predict select number
         e_num_col, col_num = col_name_encode(col_inp_var, col_name_len,
                                              col_len, self.where_rela_lstm)
